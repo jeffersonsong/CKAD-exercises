@@ -16,6 +16,11 @@ kubernetes.io > Documentation > Concepts > Overview > Working with Kubernetes Ob
 
 <details><summary>show</summary>
 <p>
+```
+kubectl run nginx1 --image=nginx --labels="app=v1"
+kubectl run nginx2 --image=nginx --labels="app=v1"
+kubectl run nginx3 --image=nginx --labels="app=v1"
+```
 </p>
 </details>
 
@@ -23,6 +28,13 @@ kubernetes.io > Documentation > Concepts > Overview > Working with Kubernetes Ob
 
 <details><summary>show</summary>
 <p>
+```
+k get pod --show-labels
+NAME     READY   STATUS    RESTARTS   AGE   LABELS
+nginx1   1/1     Running   0          75s   app=v1
+nginx2   1/1     Running   0          50s   app=v1
+nginx3   1/1     Running   0          44s   app=v1
+```
 </p>
 </details>
 
@@ -30,6 +42,9 @@ kubernetes.io > Documentation > Concepts > Overview > Working with Kubernetes Ob
 
 <details><summary>show</summary>
 <p>
+```
+k label pod nginx2 --overwrite app=v2
+```
 </p>
 </details>
 
@@ -37,6 +52,9 @@ kubernetes.io > Documentation > Concepts > Overview > Working with Kubernetes Ob
 
 <details><summary>show</summary>
 <p>
+```
+k get pod -L app   
+```
 </p>
 </details>
 
@@ -44,6 +62,11 @@ kubernetes.io > Documentation > Concepts > Overview > Working with Kubernetes Ob
 
 <details><summary>show</summary>
 <p>
+```
+k get pod --selector="app=v2"
+NAME     READY   STATUS    RESTARTS   AGE
+nginx2   1/1     Running   0          4m53s
+```
 </p>
 </details>
 
@@ -51,6 +74,9 @@ kubernetes.io > Documentation > Concepts > Overview > Working with Kubernetes Ob
 
 <details><summary>show</summary>
 <p>
+```
+k label pods --selector="app in (v1, v2)" tier=web
+```
 </p>
 </details>
 
@@ -59,6 +85,9 @@ kubernetes.io > Documentation > Concepts > Overview > Working with Kubernetes Ob
 
 <details><summary>show</summary>
 <p>
+```
+k annotate pods --selector="app=v2" owner=marketing
+```
 </p>
 </details>
 
@@ -66,6 +95,9 @@ kubernetes.io > Documentation > Concepts > Overview > Working with Kubernetes Ob
 
 <details><summary>show</summary>
 <p>
+```
+k label pods nginx1 nginx2 nginx3 app-
+```
 </p>
 </details>
 
@@ -73,6 +105,9 @@ kubernetes.io > Documentation > Concepts > Overview > Working with Kubernetes Ob
 
 <details><summary>show</summary>
 <p>
+```
+k annotate pods nginx1 nginx2 nginx3 description='my description'
+```
 </p>
 </details>
 
@@ -80,6 +115,9 @@ kubernetes.io > Documentation > Concepts > Overview > Working with Kubernetes Ob
 
 <details><summary>show</summary>
 <p>
+```
+k describe pod nginx1 | grep -i "Annotations:"
+```
 </p>
 </details>
 
@@ -87,6 +125,9 @@ kubernetes.io > Documentation > Concepts > Overview > Working with Kubernetes Ob
 
 <details><summary>show</summary>
 <p>
+```
+k annotate pod nginx1 nginx2 nginx3 description- owner-
+```
 </p>
 </details>
 
@@ -94,6 +135,9 @@ kubernetes.io > Documentation > Concepts > Overview > Working with Kubernetes Ob
 
 <details><summary>show</summary>
 <p>
+```
+k delete pods nginx1 nginx2 nginx3
+```
 </p>
 </details>
 
@@ -103,6 +147,19 @@ kubernetes.io > Documentation > Concepts > Overview > Working with Kubernetes Ob
 
 <details><summary>show</summary>
 <p>
+[Assigning Pods to Nodes](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/)
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+  nodeSelector:
+    accelerator: nvidia-tesla-p100
+```
 </p>
 </details>
 
@@ -110,6 +167,28 @@ kubernetes.io > Documentation > Concepts > Overview > Working with Kubernetes Ob
 
 <details><summary>show</summary>
 <p>
+```
+k taint nodes node01 tier=frontend:NoSchedule
+
+```
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+  tolerations:
+  - key: "tier"
+    operator: "Equal"
+    value: "frontend"
+    effect: "NoSchedule"
+```
+```
+k apply -f pod.yaml
+```
 </p>
 </details>
 
@@ -117,6 +196,24 @@ kubernetes.io > Documentation > Concepts > Overview > Working with Kubernetes Ob
 
 <details><summary>show</summary>
 <p>
+```
+k describe node controlplane
+```
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+  nodeName: controlplane
+  tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: "Exists"
+    effect: NoSchedule
+```
 </p>
 </details>
 
@@ -128,6 +225,9 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k create deploy nginx --image=nginx:1.18.0 --replicas=2 --port=80
+```
 </p>
 </details>
 
@@ -135,6 +235,9 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k get deploy nginx -o yaml
+```
 </p>
 </details>
 
@@ -142,6 +245,9 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k get rs nginx-dbdf9c499 -o yaml
+```
 </p>
 </details>
 
@@ -149,6 +255,9 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k get pod nginx-dbdf9c499-d29gc -o yaml
+```
 </p>
 </details>
 
@@ -156,6 +265,9 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k rollout status deploy/nginx
+```
 </p>
 </details>
 
@@ -163,6 +275,9 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k set image deploy/nginx nginx=nginx:1.19.8
+```
 </p>
 </details>
 
@@ -170,6 +285,9 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k rollout history deploy/nginx
+```
 </p>
 </details>
 
@@ -177,6 +295,10 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k rollout undo deploy/nginx --to-revision=1
+k describe deploy nginx | grep Image
+```
 </p>
 </details>
 
@@ -184,6 +306,9 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k set image deploy/nginx nginx=nginx:1.91
+```
 </p>
 </details>
 
@@ -191,6 +316,13 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k rollout status deploy/nginx
+
+k get pod
+NAME                     READY   STATUS             RESTARTS   AGE
+nginx-79566b9f54-9zg86   0/1     ImagePullBackOff   0          2m17s
+```
 </p>
 </details>
 
@@ -199,6 +331,10 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k rollout undo deploy/nginx --to-revision=2
+k describe deploy nginx | grep Image
+```
 </p>
 </details>
 
@@ -206,6 +342,9 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k rollout history deploy/nginx --revision=4
+```
 </p>
 </details>
 
@@ -213,6 +352,9 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k scale deploy/nginx --replicas=5
+```
 </p>
 </details>
 
@@ -220,6 +362,9 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k autoscale deploy/nginx --min=5 --max=10 --cpu-percent=80
+```
 </p>
 </details>
 
@@ -227,6 +372,9 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k rollout pause deploy/nginx
+```
 </p>
 </details>
 
@@ -234,6 +382,10 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k set image deploy/nginx nginx=nginx:1.19.9
+k rollout status deploy/nginx
+```
 </p>
 </details>
 
@@ -241,6 +393,10 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k rollout resume deploy/nginx
+k rollout status deploy/nginx
+```
 </p>
 </details>
 
@@ -248,6 +404,10 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k delete hpa/nginx
+k delete deploy/nginx
+```
 </p>
 </details>
 
@@ -255,6 +415,65 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-blue
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: nginx
+        version: v1
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+```
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-green
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: nginx
+        version: v2
+    spec:
+      containers:
+      - image: nginx
+        name: nginx
+```
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: nginx
+  type: ClusterIP
+```
+```
+k delete svc/nginx deploy/nginx-blue deploy/nginx-green
+```
 </p>
 </details>
 
@@ -264,6 +483,10 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+[Jobs](https://kubernetes.io/docs/concepts/workloads/controllers/job/)
+```
+k create job pi --image=perl:5.34 -- perl -Mbignum=bpi -wle 'print bpi(2000)' 
+```
 </p>
 </details>
 
@@ -271,6 +494,9 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k logs pi-6cldc
+```
 </p>
 </details>
 
@@ -278,6 +504,9 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k create job busybox-job --image=busybox -- /bin/sh -c "echo hello;sleep 30;echo world"
+```
 </p>
 </details>
 
@@ -285,6 +514,9 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k logs busybox-job-dgkn5
+```
 </p>
 </details>
 
@@ -292,6 +524,11 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k get job busybox-job
+k describe job busybox-job
+k logs job/busybox-job
+```
 </p>
 </details>
 
@@ -299,6 +536,9 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+k delete job/busybox-job
+```
 </p>
 </details>
 
@@ -306,6 +546,24 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: busybox
+spec:
+  activeDeadlineSeconds: 30
+  template:
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - sleep 35 && echo 'hello world'
+        image: busybox
+        name: busybox
+      restartPolicy: Never
+```
 </p>
 </details>
 
@@ -313,6 +571,24 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: busybox
+spec:
+  completions: 5
+  template:
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - sleep 5 && echo 'hello world'
+        image: busybox
+        name: busybox
+      restartPolicy: Never
+```
 </p>
 </details>
 
@@ -320,6 +596,25 @@ kubernetes.io > Documentation > Concepts > Workloads > Workload Resources > [Dep
 
 <details><summary>show</summary>
 <p>
+```
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: busybox
+spec:
+  completions: 5
+  parallelism: 5
+  template:
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - sleep 5 && echo 'hello world'
+        image: busybox
+        name: busybox
+      restartPolicy: Never
+```
 </p>
 </details>
 
@@ -331,6 +626,9 @@ kubernetes.io > Documentation > Tasks > Run Jobs > [Running Automated Tasks with
 
 <details><summary>show</summary>
 <p>
+```
+kubectl create cronjob my-job --image=busybox --schedule="*/1 * * * *" -- /bin/sh -c 'date; echo "Hello from the Kubernetes cluster"'
+```
 </p>
 </details>
 
@@ -338,6 +636,10 @@ kubernetes.io > Documentation > Tasks > Run Jobs > [Running Automated Tasks with
 
 <details><summary>show</summary>
 <p>
+```
+k logs job/my-job-28769701
+k delete cj my-job
+```
 </p>
 </details>
 
@@ -345,6 +647,12 @@ kubernetes.io > Documentation > Tasks > Run Jobs > [Running Automated Tasks with
 
 <details><summary>show</summary>
 <p>
+```
+k get cj
+k get job -w
+k logs job/my-job-28769706
+k delete cj my-job
+```
 </p>
 </details>
 
@@ -352,6 +660,33 @@ kubernetes.io > Documentation > Tasks > Run Jobs > [Running Automated Tasks with
 
 <details><summary>show</summary>
 <p>
+[CronJob](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/)
+```
+kubectl create cronjob my-job --image=busybox --schedule="*/1 * * * *" --dry-run=client -o yaml -- /bin/sh -c 'date; echo "Hello from the Kubernetes cluster"' > my-job.yaml
+```
+```yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: my-job
+spec:
+  startingDeadlineSeconds: 17
+  jobTemplate:
+    metadata:
+      name: my-job
+    spec:
+      template:
+        spec:
+          containers:
+          - command:
+            - /bin/sh
+            - -c
+            - date; echo "Hello from the Kubernetes cluster"
+            image: busybox
+            name: my-job
+          restartPolicy: OnFailure
+  schedule: '*/1 * * * *'
+```
 </p>
 </details>
 
@@ -359,6 +694,29 @@ kubernetes.io > Documentation > Tasks > Run Jobs > [Running Automated Tasks with
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: my-job
+spec:
+  jobTemplate:
+    metadata:
+      name: my-job
+    spec:
+      activeDeadlineSeconds: 12
+      template:
+        spec:
+          containers:
+          - command:
+            - /bin/sh
+            - -c
+            - date; echo "Hello from the Kubernetes cluster"
+            image: busybox
+            name: my-job
+          restartPolicy: OnFailure
+  schedule: '*/1 * * * *'
+```
 </p>
 </details>
 
@@ -366,5 +724,8 @@ kubernetes.io > Documentation > Tasks > Run Jobs > [Running Automated Tasks with
 
 <details><summary>show</summary>
 <p>
+```
+kubectl create job test-job --from=cj/my-job
+```
 </p>
 </details>
