@@ -22,6 +22,9 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```
+k create cm config --from-literal=foo=lala --from-literal=foo2=lolo
+```
 </p>
 </details>
 
@@ -29,6 +32,9 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```
+k describe cm config
+```
 </p>
 </details>
 
@@ -42,6 +48,9 @@ echo -e "foo3=lili\nfoo4=lele" > config.txt
 
 <details><summary>show</summary>
 <p>
+```
+k create cm config --from-file=config.txt
+```
 </p>
 </details>
 
@@ -55,6 +64,10 @@ echo -e "var1=val1\n# this is a comment\n\nvar2=val2\n#anothercomment" > config.
 
 <details><summary>show</summary>
 <p>
+```
+k create cm config --from-env-file=config.env
+k describe cm config
+```
 </p>
 </details>
 
@@ -68,6 +81,9 @@ echo -e "var3=val3\nvar4=val4" > config4.txt
 
 <details><summary>show</summary>
 <p>
+```
+k create cm config --from-file=special=config4.txt
+```
 </p>
 </details>
 
@@ -75,6 +91,27 @@ echo -e "var3=val3\nvar4=val4" > config4.txt
 
 <details><summary>show</summary>
 <p>
+```
+k create cm options --from-literal=var5=val5
+```
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: nginx
+  name: nginx
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+    env:
+      - name: option
+        valueFrom:
+          configMapKeyRef:
+            name: options
+            key: var5
+```
 </p>
 </details>
 
@@ -82,6 +119,21 @@ echo -e "var3=val3\nvar4=val4" > config4.txt
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: nginx
+  name: nginx
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+    envFrom:
+    - configMapRef:
+        name: anotherone
+```
 </p>
 </details>
 
@@ -89,6 +141,25 @@ echo -e "var3=val3\nvar4=val4" > config4.txt
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: nginx
+  name: nginx
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+    volumeMounts:
+    - mountPath: /etc/lala
+      name: cmvolume
+  volumes:
+  - name: cmvolume
+    configMap:
+      name: cmvolume
+```
 </p>
 </details>
 
@@ -100,6 +171,18 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  securityContext:
+    runAsUser: 101
+  containers:
+  - image: nginx
+    name: nginx
+```
 </p>
 </details>
 
@@ -108,6 +191,21 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+    securityContext:
+      capabilities:
+        add:
+        - NET_ADMIN
+        - SYS_TIME
+```
 </p>
 </details>
 
@@ -119,6 +217,23 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Assign 
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi
+```
 </p>
 </details>
 
@@ -129,6 +244,23 @@ kubernetes.io > Documentation > Concepts > Policies > Limit Ranges (https://kube
 
 <details><summary>show</summary>
 <p>
+```
+k create ns limitrange
+```
+```yaml
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: mem-limit-range
+  namespace: limitrange
+spec:
+  limits:
+  - type: Pod
+    min:
+      memory: 100Mi
+    max:
+      memory: 500Mi
+```
 </p>
 </details>
 
@@ -136,6 +268,9 @@ kubernetes.io > Documentation > Concepts > Policies > Limit Ranges (https://kube
 
 <details><summary>show</summary>
 <p>
+```
+k describe limits mem-limit-range -n limitrange
+```
 </p>
 </details>
 
@@ -143,6 +278,20 @@ kubernetes.io > Documentation > Concepts > Policies > Limit Ranges (https://kube
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  namespace: limitrange
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+    resources:
+      requests:
+        memory: 250Mi
+```
 </p>
 </details>
 
@@ -154,6 +303,9 @@ kubernetes.io > Documentation > Concepts > Policies > Resource Quotas (https://k
 
 <details><summary>show</summary>
 <p>
+```
+kubectl create quota my-quota -n one --hard=requests.cpu=1,requests.memory=1Gi,limits.cpu=2,limits.memory=2Gi
+```
 </p>
 </details>
 
@@ -161,6 +313,24 @@ kubernetes.io > Documentation > Concepts > Policies > Resource Quotas (https://k
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  namespace: one
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+    resources:
+      requests:
+        cpu: 2
+        memory: 3Gi
+      limits:
+        cpu: 3
+        memory: 4Gi
+```
 </p>
 </details>
 
@@ -168,6 +338,24 @@ kubernetes.io > Documentation > Concepts > Policies > Resource Quotas (https://k
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+  namespace: one
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+    resources:
+      requests:
+        cpu: 0.5
+        memory: 1Gi
+      limits:
+        cpu: 1
+        memory: 2Gi
+```
 </p>
 </details>
 
@@ -182,6 +370,9 @@ kubernetes.io > Documentation > Tasks > Inject Data Into Applications > [Distrib
 
 <details><summary>show</summary>
 <p>
+```
+k create secret generic mysecret --from-literal=password=mypass
+```
 </p>
 </details>
 
@@ -195,6 +386,9 @@ echo -n admin > username
 
 <details><summary>show</summary>
 <p>
+```
+k create secret generic mysecret2 --from-file=username
+```
 </p>
 </details>
 
@@ -202,6 +396,10 @@ echo -n admin > username
 
 <details><summary>show</summary>
 <p>
+```
+k get secret mysecret2 -o yaml
+echo -n "YWRtaW4=" | base64 --decode
+```
 </p>
 </details>
 
@@ -209,6 +407,23 @@ echo -n admin > username
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+    volumeMounts:
+    - mountPath: /etc/foo
+      name: vol
+  volumes:
+  - name: vol
+    secret:
+      secretName: mysecret2 
+```
 </p>
 </details>
 
@@ -216,6 +431,22 @@ echo -n admin > username
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+    env:
+    - name: USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: mysecret2
+          key: username
+```
 </p>
 </details>
 
@@ -223,24 +454,83 @@ echo -n admin > username
 
 <details><summary>show</summary>
 <p>
+```
+k create secret generic ext-service-secret -n secret-ops --from-literal=API_KEY=LmLHbYhsgWZwNifiqaRorH8T
+```
 </p>
 </details>
 
 ### Consuming the Secret. Create a Pod named 'consumer' with the image 'nginx' in the namespace 'secret-ops' and consume the Secret as an environment variable. Then, open an interactive shell to the Pod, and print all environment variables.
 <details><summary>show</summary>
 <p>
+```
+k run consumer -n secret-ops --image=nginx --dry-run=client -o yaml > pod.yaml
+```
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: consumer
+  namespace: secret-ops
+spec:
+  containers:
+  - image: nginx
+    name: consumer
+    env:
+    - name: API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: ext-service-secret
+          key: API_KEY
+```
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: consumer
+  namespace: secret-ops
+spec:
+  containers:
+  - image: nginx
+    name: consumer
+    envFrom:
+    - secretRef:
+        name: ext-service-secret
+```
 </p>
 </details>
 
 ### Create a Secret named 'my-secret' of type 'kubernetes.io/ssh-auth' in the namespace 'secret-ops'. Define a single key named 'ssh-privatekey', and point it to the file 'id_rsa' in this directory.
 <details><summary>show</summary>
 <p>
+```
+k create secret generic my-secret -n secret-ops --type='kubernetes.io/ssh-auth' --from-file=ssh-privatekey=/home/jeffersons/.ssh/id_ed25519 
+```
 </p>
 </details>
 
 ### Create a Pod named 'consumer' with the image 'nginx' in the namespace 'secret-ops', and consume the Secret as Volume. Mount the Secret as Volume to the path /var/app with read-only access. Open an interactive shell to the Pod, and render the contents of the file.
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: consumer
+  namespace: secret-ops
+spec:
+  containers:
+  - image: nginx
+    name: consumer
+    volumeMounts:
+    - mountPath: /var/app
+      name: vol
+      readOnly: true
+  volumes:
+  - name: vol
+    secret:
+      secretName: my-secret
+```
 </p>
 </details>
 
@@ -252,6 +542,9 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```
+k get sa -A
+```
 </p>
 </details>
 
@@ -259,6 +552,9 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```
+k create sa myuser
+```
 </p>
 </details>
 
@@ -266,6 +562,17 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  serviceAccountName: myuser
+  containers:
+  - image: nginx
+    name: nginx
+```
 </p>
 </details>
 
@@ -273,5 +580,8 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```
+k create token myuser
+```
 </p>
 </details>
