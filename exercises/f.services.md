@@ -5,6 +5,9 @@
 
 <details><summary>show</summary>
 <p>
+```
+k run nginx --image=nginx --port=80 --expose
+```
 </p>
 </details>
 
@@ -13,6 +16,10 @@
 
 <details><summary>show</summary>
 <p>
+```
+k get svc
+k get ep
+```
 </p>
 </details>
 
@@ -20,9 +27,9 @@
 
 <details><summary>show</summary>
 <p>
-</p>
-or
-<p>
+```
+k run temp --image=busybox -it --rm --restart=Never -- /bin/sh -c 'wget -O- 10.105.72.149'
+```
 </p>
 </details>
 
@@ -30,6 +37,14 @@ or
 
 <details><summary>show</summary>
 <p>
+```
+k delete svc nginx
+k expose pod nginx --type=NodePort
+k get svc -o wide
+k get node -o wide
+curl http://192.168.49.2:30391
+k get node minikube -o json | jq '.status.addresses[] | select (.type == "InternalIP").address'
+```
 </p>
 </details>
 
@@ -37,6 +52,11 @@ or
 
 <details><summary>show</summary>
 <p>
+```
+k create deploy foo --image=dgkanatsios/simpleapp --replicas=3 --port 8080
+k get deploy foo --show-labels
+k label deploy foo --overwrite app=foo
+```
 </p>
 </details>
 
@@ -44,6 +64,11 @@ or
 
 <details><summary>show</summary>
 <p>
+```
+k get pods -l app=foo -o wide
+k run busybox --image=busybox -it --rm --restart=Never -- /bin/sh
+/ # wget -O- http://10.0.0.125:8080
+```
 </p>
 </details>
 
@@ -51,6 +76,11 @@ or
 
 <details><summary>show</summary>
 <p>
+```
+k expose deploy foo --port=6262 --target-port=8080 --type=ClusterIP
+k get svc foo
+k get ep foo
+```
 </p>
 </details>
 
@@ -58,6 +88,11 @@ or
 
 <details><summary>show</summary>
 <p>
+```
+k run busybox --image=busybox -it --rm --restart=Never -- /bin/sh
+/ # wget -O- foo:6262
+/ # wget -O- http://10.109.22.23:6262
+```
 </p>
 </details>
 
@@ -69,5 +104,28 @@ kubernetes.io > Documentation > Concepts > Services, Load Balancing, and Network
   
 <details><summary>show</summary>
 <p>
+```
+k create deploy nginx --image=nginx --replicas=2 --port=80
+k expose deploy nginx --port=80 --target-port=80 --type=ClusterIP
+k run busybox --image=busybox -it --rm --restart=Never -- wget -O- nginx:80 --timeout 5
+k run busybox --image=busybox -it --rm --restart=Never -l "access=granted" -- wget -O- nginx:80 --timeout 5
+```
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: nginx
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          access: granted
+```
 </p>
 </details>
