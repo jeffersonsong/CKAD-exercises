@@ -9,6 +9,23 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+    livenessProbe:
+      exec:
+        command: 
+        - ls
+```
+```
+k describe pod nginx | grep -i liveness
+```
 </p>
 </details>
 
@@ -16,6 +33,25 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+    livenessProbe:
+      exec:
+        command:
+        - ls
+      initialDelaySeconds: 5
+      periodSeconds: 5
+```
+```
+k describe pod nginx | grep -i liveness
+```
 </p>
 </details>
 
@@ -23,6 +59,24 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+    ports:
+    - containerPort: 80
+    livenessProbe:
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      httpGet:
+        port: 80
+        path: /
+```
 </p>
 </details>
 
@@ -30,6 +84,9 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```
+k get events -o json | jq -r '.items[] | select(.message | contains ("Liveness probe failed")).involvedObject | .namespace + "/" + .name'
+```
 </p>
 </details>
 
@@ -39,6 +96,10 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```
+k run busybox --image=busybox -- /bin/sh -c 'i=0; while true; do echo "$i: $(date)"; i=$((i+1)); sleep 1; done'
+k logs busybox
+```
 </p>
 </details>
 
@@ -48,6 +109,10 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```
+k run busybox --image=busybox -- /bin/sh -c 'ls /notexist'
+k logs busybox
+```
 </p>
 </details>
 
@@ -55,6 +120,12 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```
+k run busybox --image=busybox -- notexist
+k logs busybox
+k describe pod busybox
+k delete pod busybox --force --grace-period=0
+```
 </p>
 </details>
 
@@ -63,5 +134,8 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```
+k top node
+```
 </p>
 </details>
