@@ -11,6 +11,45 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: busybox
+  name: busybox
+spec:
+  containers:
+  - args:
+    - /bin/sh
+    - -c
+    - sleep 3600
+    image: busybox
+    name: busybox1
+    volumeMounts:
+    - mountPath: /etc/foo
+      name: vol
+  - args:
+    - /bin/sh
+    - -c
+    - sleep 3600
+    image: busybox
+    name: busybox2
+    volumeMounts:
+    - mountPath: /etc/foo
+      name: vol
+  volumes:
+  - name: vol
+    emptyDir: {}
+  restartPolicy: Never
+```
+```
+k exec -it busybox -c busybox2 -- /bin/sh
+/ # cut -f1 -d':' /etc/passwd  > /etc/foo/passwd
+
+k exec -it busybox -c busybox1 -- /bin/sh
+/ # cat /etc/foo/passwd
+```
 </p>
 </details>
 
@@ -19,6 +58,24 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: myvolume
+spec:
+  storageClassName: normal
+  capacity:
+    storage: 10Gi
+  accessModes:
+  - ReadWriteOnce
+  - ReadWriteMany
+  hostPath:
+    path: /etc/foo
+```
+```
+k get pv myvolume
+```
 </p>
 </details>
 
@@ -26,6 +83,23 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mypvc
+spec:
+  volumeName: myvolume
+  storageClassName: normal
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 4Gi
+```
+```
+k get pv
+```
 </p>
 </details>
 
@@ -33,6 +107,36 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```
+k run busybox --image=busybox --dry-run=client -o yaml -- /bin/sh -c 'sleep 3600' > pod.yaml
+```
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox
+spec:
+  containers:
+  - args:
+    - /bin/sh
+    - -c
+    - sleep 3600
+    image: busybox
+    name: busybox
+    volumeMounts:
+    - mountPath: /etc/foo
+      name: vol
+  volumes:
+  - name: vol
+    persistentVolumeClaim:
+      claimName: mypvc
+```
+```
+k exec -it busybox -- /bin/sh
+/ # cp /etc/passwd /etc/foo/passwd
+/ # cat /etc/foo/passwd
+```
+
 </p>
 </details>
 
@@ -42,6 +146,10 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```
+k exec -it busybox2 -- /bin/sh
+/ # cat /etc/foo/passwd
+```
 </p>
 </details>
 
@@ -49,5 +157,10 @@ kubernetes.io > Documentation > Tasks > Configure Pods and Containers > [Configu
 
 <details><summary>show</summary>
 <p>
+```
+k run busybox --image=busybox -- /bin/sh -c 'sleep 3600'
+k cp busybox:/etc/passwd passwd
+cat passwd
+```
 </p>
 </details>
