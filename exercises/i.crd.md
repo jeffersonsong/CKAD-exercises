@@ -14,6 +14,38 @@
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: operators.stable.example.com
+spec:
+  group: stable.example.com
+  scope: Namespaced
+  names:
+    plural: operators
+    singular: operator
+    shortNames: 
+    - op
+    kind: Operator
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              email:
+                type: string
+              name:
+                type: string
+              age:
+                type: integer
+```
 </p>
 </details>
 
@@ -21,6 +53,9 @@
 
 <details><summary>show</summary>
 <p>
+```
+k apply -f crd.yaml
+```
 </p>
 </details>
 
@@ -35,6 +70,19 @@
 
 <details><summary>show</summary>
 <p>
+```yaml
+apiVersion: "stable.example.com/v1"
+kind: Operator
+metadata:
+  name: operator-sample
+spec:
+  email: operator-sample@stable.example.com
+  name: 'operator sample'
+  age: 30
+```
+```
+k apply -f custom-resource.yaml
+```
 </p>
 </details>
 
@@ -42,5 +90,6 @@
 
 <details><summary>show</summary>
 <p>
+k get op
 </p>
 </details>
